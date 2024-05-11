@@ -23,11 +23,14 @@ function addPost(req,res) {
 function allPosts(req,res){
     const query = `
         SELECT p.*, 
-            COUNT(pl.liked_on) AS like_count
+            COUNT(pl.liked_on) AS like_count,
+            u.user_name,
+            u.profile_pic
         FROM post p
         LEFT JOIN user_like pl ON p.id = pl.liked_on
+        LEFT JOIN user u ON p.posted_by = u.id
         GROUP BY p.id
-    `;;
+    `;
 
     db.query(query, (err, results) => {
         if (err) {
