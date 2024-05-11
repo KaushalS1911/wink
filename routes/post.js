@@ -1,23 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
 const db = require('../configs/db');
+const {postImage} = require('../helpers/upload');
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './public/images');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: postImage });
 
 router.post('/post', upload.single('image'), (req, res) => {
     const { posted_by, caption, description} = req.body;
-    const image = req.file.filename;
+    const image = req.file.path;
 
     if ( !image || !caption || !description) {
         return res.status(400).send('All fields are required');

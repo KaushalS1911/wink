@@ -1,19 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
 const db = require("../configs/db");
+const {userAvatar} = require('../helpers/upload');
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './public/users');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage: storage });
+const upload = multer({ storage: userAvatar });
 
 router.get('/user/:id', (req, res) => {
     const userId = parseInt(req.params.id);
@@ -46,7 +37,7 @@ router.put('/user/:id', upload.single('profile_pic'), (req, res) => {
     let profile_pic;
 
     if (req.file) {
-        profile_pic = req.file.filename;
+        profile_pic = req.file.path;
     }
 
     let query = 'UPDATE user SET ';
