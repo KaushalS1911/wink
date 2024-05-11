@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
@@ -5,6 +6,7 @@ const postRoutes = require('./routes/post');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require("cors");
+const PORT = process.env.PORT || 9000;
 
 const app = express();
 
@@ -21,7 +23,6 @@ app.use('/auth', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', postRoutes);
 
-const PORT = 9000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
