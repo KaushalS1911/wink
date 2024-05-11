@@ -6,13 +6,12 @@ const auth = (req, res, next) => {
     if (!token) {
         return res.status(401).json({message: 'Access denied. Token not provided.', status: 401});
     }
+    const user = getToken();
 
-    try {
-        req.user = getToken();
-        next();
-    } catch (error) {
-        return res.status(400).json({message: 'Invalid token.', status: 400});
-    }
+    if(!user) return res.status(401).json({message: 'Invalid token', status: 401});
+
+    req.user = user;
+    next();
 };
 
 module.exports = auth;
