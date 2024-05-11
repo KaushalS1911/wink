@@ -21,11 +21,19 @@ function addPost(req,res) {
 }
 
 function allPosts(req,res){
+    const userId = parseInt(req.user.id);
+
     const query = `
         SELECT p.*, 
             COUNT(pl.liked_on) AS like_count,
             u.user_name,
-            u.profile_pic
+            u.profile_pic,
+            EXISTS (
+                SELECT 1
+                FROM user_like ul
+                WHERE ul.liked_on = p.id
+                AND ul.liked_by = ${userId}
+            ) AS is_liked
         FROM post p
         LEFT JOIN user_like pl ON p.id = pl.liked_on
         LEFT JOIN user u ON p.posted_by = u.id
