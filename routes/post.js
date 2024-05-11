@@ -35,4 +35,59 @@ router.post('/post', upload.single('image'), (req, res) => {
     });
 });
 
+router.get('/post', (req, res) => {
+    const query = `
+        SELECT p.*, 
+            COUNT(pl.liked_on) AS like_count
+        FROM post p
+        LEFT JOIN user_like pl ON p.id = pl.liked_on
+        GROUP BY p.id
+    `;;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching posts:', err);
+            return res.status(500).json({ message: 'Error fetching posts', status: 500 });
+        }
+
+        res.json({data: results, status: 200});
+    });
+});
+
+// Like a post
+router.post('/post/:postId', (req, res) => {
+    const userId = 1;
+    const postId = req.params.postId;
+
+    db.query('SELECT * FROM user_like WHERE liked_by = ? AND liked_on = ?', [userId, postId], (error, results, fields) => {
+        if (error) {
+            console.error('Error checking like relationship:', error);
+            res.status(500).json({ message: 'Error checking like relationship', status: 500 });
+            return;
+        }
+
+        if (results.length > 0) {
+            db.query('DELETE FROM user_like WHERE liked_by = ? AND liked_on = ?', [userId, postId], (deleteError, deleteResults, deleteFields) => {
+                if (deleteError) {
+                    console.error('Error disliking post:', deleteError);
+                    res.status(500).json({ message: 'Error disliking post', status: 500 });
+                    return;
+                }
+                res.json({ success: true });
+            });
+        }else{
+            db.query('INSERT INTO user_like (liked_by, liked_on) VALUES (?, ?)', [userId, postId], (insertError, insertResults, insertFields) => {
+                if (insertError) {
+                    console.error('Error liking post:', insertError);
+                    res.status(500).json({ message: 'Error liking post' , status: 500 });
+                    return;
+                }
+                res.json({ success: true });
+            });
+        }
+    });
+});
+
+
+
 module.exports = router;

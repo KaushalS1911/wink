@@ -18,7 +18,13 @@ const upload = multer({ storage: storage });
 router.get('/user/:id', (req, res) => {
     const userId = parseInt(req.params.id);
 
-    const query = 'SELECT * FROM user WHERE id = ?';
+    const query = `
+        SELECT u.*, 
+            (SELECT COUNT(*) FROM user_follower WHERE user_id = u.id) AS follower_count,
+            (SELECT COUNT(*) FROM user_follower WHERE follower_id = u.id) AS following_count
+        FROM user u
+        WHERE u.id = ?
+    `;
 
     db.query(query, [userId], (err, results) => {
         if (err) {
@@ -30,7 +36,7 @@ router.get('/user/:id', (req, res) => {
             return res.status(404).send({message: 'User not found', status: 404});
         }
 
-        res.json(results[0]);
+        res.json({data: results[0], status: 200});
     });
 });
 
@@ -90,7 +96,7 @@ router.put('/user/:id', upload.single('profile_pic'), (req, res) => {
     });
 });
 
-router.post('/user/follow/:userId', (req, res) => {
+router.post('/user/:userId', (req, res) => {
     const followerId = 1;
     const followedId = req.params.userId;
 
@@ -102,46 +108,46 @@ router.post('/user/follow/:userId', (req, res) => {
         }
 
         if (results.length > 0) {
-            res.status(400).json({ message: 'Already followed', status: 400 });
+            db.query('DELETE FROM user_follower WHERE follower_id = ? AND user_id = ?', [followerId, followedId], (deleteError, deleteResults, deleteFields) => {
+                if (deleteError) {
+                    console.error('Error unfollowing user:', deleteError);
+                    res.status(500).json({ message: 'Error unfollowing user' , status: 500});
+                    return;
+                }
+                res.json({ success: true });
+            });
             return;
+        }else{
+            db.query('INSERT INTO user_follower (follower_id, user_id) VALUES (?, ?)', [followerId, followedId], (insertError, insertResults, insertFields) => {
+                if (insertError) {
+                    console.error('Error following user:', insertError);
+                    res.status(500).json({ message: 'Error following user', status: 500 });
+                    return;
+                }
+                res.json({ success: true });
+            });
         }
-
-        db.query('INSERT INTO user_follower (follower_id, user_id) VALUES (?, ?)', [followerId, followedId], (insertError, insertResults, insertFields) => {
-            if (insertError) {
-                console.error('Error following user:', insertError);
-                res.status(500).json({ message: 'Error following user', status: 500 });
-                return;
-            }
-            res.json({ success: true });
-        });
     });
 });
 
-router.post('/user/unfollow/:userId', (req, res) => {
-    const followerId = 1;
-    const followedId = req.params.userId;
-
-    db.query('SELECT * FROM user_follower WHERE follower_id = ? AND user_id = ?', [followerId, followedId], (error, results, fields) => {
-        if (error) {
-            console.error('Error checking follow relationship:', error);
-            res.status(500).json({ message: 'Error checking follow relationship', status: 500 });
-            return;
-        }
-
-        if (results.length === 0) {
-            res.status(400).json({ message: 'Not followed',status: 400 });
-            return;
-        }
-
-        db.query('DELETE FROM user_follower WHERE follower_id = ? AND user_id = ?', [followerId, followedId], (deleteError, deleteResults, deleteFields) => {
-            if (deleteError) {
-                console.error('Error unfollowing user:', deleteError);
-                res.status(500).json({ message: 'Error unfollowing user' , status: 500});
-                return;
-            }
-            res.json({ message: "Unfollowed successfully", status: 200 });
-        });
-    });
-});
+// router.post('/user/unfollow/:userId', (req, res) => {
+//     const followerId = 1;
+//     const followedId = req.params.userId;
+//
+//     db.query('SELECT * FROM user_follower WHERE follower_id = ? AND user_id = ?', [followerId, followedId], (error, results, fields) => {
+//         if (error) {
+//             console.error('Error checking follow relationship:', error);
+//             res.status(500).json({ message: 'Error checking follow relationship', status: 500 });
+//             return;
+//         }
+//
+//         if (results.length === 0) {
+//             res.status(400).json({ message: 'Not followed',status: 400 });
+//             return;
+//         }
+//
+//
+//     });
+// });
 
 module.exports = router;
