@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
                 console.error('Error registering user: ' + err);
                 res.status(500).json({message: 'Error registering user', status: 500});
             } else {
-                res.status(200).send({message: 'User registered successfully', status: 200});
+                res.status(200).send({message: 'User registered successfully', status: 200, data: result[0]});
             }
         }
     );
@@ -39,9 +39,9 @@ router.post('/login', async (req, res) => {
                 const match = await bcrypt.compare(password, result[0].password);
                 const {id, user_name} = result[0];
                 if (match) {
+                    const {password, ...user} = result[0];
                     const auth_token = setToken({id, user_name});
-                    res.cookie("auth", auth_token);
-                    res.status(200).json({message: 'Login successful', status: 200});
+                    res.status(200).json({message: 'Login successful', status: 200, data: user, token: auth_token});
                 } else {
                     res.status(401).send({message: 'Invalid username or password', status: 401});
                 }
