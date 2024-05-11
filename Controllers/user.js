@@ -82,7 +82,7 @@ function updateUser(req,res) {
 }
 
 function userFollow(req,res){
-    const followerId = 1;
+    const followerId = req.user.id;
     const followedId = parseInt(req.params.userId);
 
     if(followerId === followedId){
@@ -119,4 +119,4 @@ function userFollow(req,res){
     });
 }
 
-module.exports = {getSingleUser, updateUser, userFollow}
+module.exports = {getSingleUser, updateUser, userFollow};

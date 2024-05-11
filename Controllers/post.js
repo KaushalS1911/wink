@@ -43,7 +43,7 @@ function allPosts(req,res){
 }
 
 function likePosts(req,res){
-    const userId = 1;
+    const userId = req.user.id;
     const postId = parseInt(req.params.postId);
 
     db.query('SELECT * FROM user_like WHERE liked_by = ? AND liked_on = ?', [userId, postId], (error, results, fields) => {

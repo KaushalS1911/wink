@@ -6,6 +6,8 @@ const postRoutes = require('./routes/post');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require("cors");
+const auth = require('./middlewares/auth');
+
 const PORT = process.env.PORT || 9000;
 
 const app = express();
@@ -20,7 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/auth', authRoutes);
-app.use('/api', userRoutes);
+app.use('/api', auth, userRoutes);
 app.use('/api', postRoutes);
 
 app.listen(PORT, () => {
