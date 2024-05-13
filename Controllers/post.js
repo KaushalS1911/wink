@@ -33,7 +33,13 @@ function allPosts(req,res){
                 FROM user_like ul
                 WHERE ul.liked_on = p.id
                 AND ul.liked_by = ${userId}
-            ) AS is_liked
+            ) AS is_liked,
+            EXISTS (
+                SELECT 1
+                FROM user_follower f
+                WHERE f.follower_id = ${userId}
+                AND f.user_id = p.posted_by
+            ) AS is_following
         FROM post p
         LEFT JOIN user_like pl ON p.id = pl.liked_on
         LEFT JOIN user u ON p.posted_by = u.id
