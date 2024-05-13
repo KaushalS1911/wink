@@ -2,10 +2,19 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const db = require('../configs/db');
-const {postImage} = require('../helpers/upload');
+const path = require("path")
 const {addPost, allPosts, likePosts} = require("../Controllers/post");
 
-const upload = multer({ storage: postImage });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './public/images');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // Create post
 router.post('/post', upload.single('image'), addPost);

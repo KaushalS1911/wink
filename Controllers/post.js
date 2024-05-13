@@ -1,7 +1,7 @@
 const db = require("../configs/db");
 
 function addPost(req,res) {
-    const { posted_by, caption, description} = req.body;
+    const { caption, description} = req.body;
     const image = req.file.path;
 
     if ( !image || !caption || !description) {
@@ -10,7 +10,7 @@ function addPost(req,res) {
 
     const query = 'INSERT INTO post (posted_by, post_image, caption, description, posted_on) VALUES (?, ?, ?, ?, ?)';
 
-    db.query(query, [posted_by, image, caption, description, new Date()], (err, result) => {
+    db.query(query, [req.user.id, image, caption, description, new Date()], (err, result) => {
         if (err) {
             console.error('Error adding new post:', err);
             return res.status(500).send('Error adding new post');

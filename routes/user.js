@@ -1,10 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const {userAvatar} = require('../helpers/upload');
+const path = require('path');
 const {getSingleUser, updateUser, userFollow} = require("../Controllers/user");
 
-const upload = multer({ storage: userAvatar });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './public/users');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+
+const upload = multer({ storage: storage });
 
 router.get('/user/:id', getSingleUser);
 
